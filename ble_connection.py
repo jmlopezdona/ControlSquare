@@ -1,7 +1,7 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
 import time
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Key, Controller, KeyCode
 
 # Constants
 DEVICE_NAME = "SQUARE"
@@ -38,22 +38,22 @@ KEY_MAPPING = {
     "Left": Key.left,
     "Down": Key.down,
     "Right": Key.right,
-    "X": "x",
-    "Square": "h",
-    "Left Campagnolo": "c",
-    "Left brake": "b",
-    "Left shift 1": "1",
-    "Left shift 2": "2",
-    "Y": "y",
+    "X": None, # left steering
+    "Square": KeyCode.from_char('r'), # pairing screen, 
+    "Left Campagnolo": Key.left,
+    "Left brake": KeyCode.from_char('6'), # backward view
+    "Left shift 1": None,
+    "Left shift 2": None,
+    "Y": KeyCode.from_char('g'), # alternate power and watts and FC 
     "A": Key.enter,
     "B": Key.esc,
-    "Z": "z",
-    "Circle": "o",
-    "Triangle": "t",
-    "Right Campagnolo": "r",
-    "Right brake": "b",
-    "Right shift 1": "3",
-    "Right shift 2": "4"
+    "Z": KeyCode.from_char('t'), # garage screen
+    "Circle": None, # Right steering
+    "Triangle": Key.space, # Activate powerup
+    "Right Campagnolo": Key.right,
+    "Right brake": KeyCode.from_char('1'), # fordward view
+    "Right shift 1": None,
+    "Right shift 2": None
 }
 
 # Variable to store the last value
