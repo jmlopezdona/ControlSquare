@@ -12,11 +12,11 @@ class SquareBluetoothService extends ChangeNotifier {
   bool _isConnected = false;
   bool _isScanning = false;
   bool _isAvailable = false;
-  String _statusMessage = 'Inicializando...';
-  String _lastButtonPressed = 'Ninguno';
+  String _statusMessage = 'Initializing...';
+  String _lastButtonPressed = 'None';
   List<ScanResult> _scanResults = [];
   
-  // Variables para la reconexión
+  // Variables for reconnection
   Timer? _reconnectTimer;
   Timer? _rescanTimer;
   int _reconnectAttempts = 0;
@@ -71,67 +71,67 @@ class SquareBluetoothService extends ChangeNotifier {
 
   Future<void> _initBluetooth() async {
     try {
-      print('Iniciando inicialización de Bluetooth...');
+      print('Starting Bluetooth initialization...');
       
-      // Esperar un momento para que el sistema determine el estado real del Bluetooth
+      // Wait a moment for the system to determine the real Bluetooth state
       await Future.delayed(const Duration(seconds: 2));
       
-      // Verificar si el Bluetooth está disponible
+      // Check if Bluetooth is available
       var adapterState = await FlutterBluePlus.adapterState.first;
-      print('Estado del adaptador Bluetooth: $adapterState');
+      print('Bluetooth adapter state: $adapterState');
       
-      // Si el estado es unknown, intentar obtener el estado real
+      // If state is unknown, try to get the real state
       if (adapterState == BluetoothAdapterState.unknown) {
-        print('Estado inicial unknown, esperando estado real...');
-        // Esperar a que el estado cambie de unknown
+        print('Initial state unknown, waiting for real state...');
+        // Wait for the state to change from unknown
         adapterState = await FlutterBluePlus.adapterState
             .firstWhere((state) => state != BluetoothAdapterState.unknown);
-        print('Estado real del adaptador: $adapterState');
+        print('Real adapter state: $adapterState');
       }
       
       _isAvailable = adapterState == BluetoothAdapterState.on;
-      print('¿Bluetooth disponible? $_isAvailable');
+      print('Is Bluetooth available? $_isAvailable');
       
       if (!_isAvailable) {
-        _statusMessage = 'Bluetooth no está activado';
-        print('Bluetooth no está disponible. Estado actual: $adapterState');
+        _statusMessage = 'Bluetooth is not activated';
+        print('Bluetooth is not available. Current state: $adapterState');
         notifyListeners();
         return;
       }
 
-      _statusMessage = 'Bluetooth listo';
-      print('Bluetooth inicializado correctamente');
+      _statusMessage = 'Bluetooth ready';
+      print('Bluetooth initialized correctly');
       notifyListeners();
 
-      // Escuchar cambios en el estado del adaptador Bluetooth
+      // Listen for changes in the Bluetooth adapter state
       FlutterBluePlus.adapterState.listen((state) {
-        print('Cambio en el estado del adaptador: $state');
+        print('Adapter state changed: $state');
         _isAvailable = state == BluetoothAdapterState.on;
-        _statusMessage = _isAvailable ? 'Bluetooth listo' : 'Bluetooth no está activado';
-        print('Estado actualizado - Disponible: $_isAvailable, Mensaje: $_statusMessage');
+        _statusMessage = _isAvailable ? 'Bluetooth ready' : 'Bluetooth is not activated';
+        print('State updated - Available: $_isAvailable, Message: $_statusMessage');
         
-        // Si el Bluetooth está disponible, iniciar el escaneo automáticamente
+        // If Bluetooth is available, start scanning automatically
         if (_isAvailable && !_isConnected && !_isScanning) {
-          print('Iniciando escaneo automático...');
+          print('Starting automatic scan...');
           startScan();
         }
         
         notifyListeners();
       });
 
-      // Iniciar el primer escaneo si el Bluetooth está disponible
+      // Start the first scan if Bluetooth is available
       if (_isAvailable && !_isConnected && !_isScanning) {
-        print('Iniciando primer escaneo...');
+        print('Starting first scan...');
         startScan();
       }
 
     } catch (e) {
-      print('Error al inicializar Bluetooth: $e');
-      _statusMessage = 'Error al inicializar Bluetooth: $e';
+      print('Error initializing Bluetooth: $e');
+      _statusMessage = 'Error initializing Bluetooth: $e';
       _isAvailable = false;
       notifyListeners();
       
-      // Programar un reintento de inicialización
+      // Schedule a retry of initialization
       _scheduleRescan();
     }
   }
@@ -139,7 +139,7 @@ class SquareBluetoothService extends ChangeNotifier {
   void _scheduleRescan() {
     _rescanTimer?.cancel();
     _rescanTimer = Timer(RESCAN_DELAY, () {
-      print('Reintentando inicialización de Bluetooth...');
+      print('Retrying Bluetooth initialization...');
       _initBluetooth();
     });
   }
@@ -149,21 +149,21 @@ class SquareBluetoothService extends ChangeNotifier {
     _reconnectAttempts++;
     
     if (_reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
-      print('Programando reconexión en ${RECONNECT_DELAY.inSeconds} segundos (intento $_reconnectAttempts de $MAX_RECONNECT_ATTEMPTS)');
-      _statusMessage = 'Reconectando en ${RECONNECT_DELAY.inSeconds} segundos...';
+      print('Scheduling reconnection in ${RECONNECT_DELAY.inSeconds} seconds (attempt $_reconnectAttempts of $MAX_RECONNECT_ATTEMPTS)');
+      _statusMessage = 'Reconnecting in ${RECONNECT_DELAY.inSeconds} seconds...';
       notifyListeners();
       
       _reconnectTimer = Timer(RECONNECT_DELAY, () {
         if (_device != null) {
-          print('Intentando reconectar al dispositivo ${_device!.platformName}...');
+          print('Attempting to reconnect to device ${_device!.platformName}...');
           connectToDevice(_device!);
         } else {
-          print('Dispositivo no disponible, iniciando nuevo escaneo...');
+          print('Device not available, starting new scan...');
           startScan();
         }
       });
     } else {
-      print('Se alcanzó el máximo de intentos de reconexión, iniciando nuevo escaneo...');
+      print('Maximum reconnection attempts reached, starting new scan...');
       _reconnectAttempts = 0;
       startScan();
     }
@@ -171,14 +171,14 @@ class SquareBluetoothService extends ChangeNotifier {
 
   Future<void> startScan() async {
     if (!_isAvailable) {
-      _statusMessage = 'Bluetooth no está disponible';
+      _statusMessage = 'Bluetooth is not available';
       notifyListeners();
       return;
     }
 
     try {
       _isScanning = true;
-      _statusMessage = 'Buscando dispositivo SQUARE...';
+      _statusMessage = 'Searching for SQUARE device...';
       _scanResults = [];
       notifyListeners();
 
@@ -189,21 +189,21 @@ class SquareBluetoothService extends ChangeNotifier {
       FlutterBluePlus.scanResults.listen((results) {
         _scanResults = results;
         
-        // Buscar el dispositivo SQUARE
+        // Look for the SQUARE device
         for (var result in results) {
           if (result.device.platformName == DEVICE_NAME) {
-            print('Dispositivo SQUARE encontrado, conectando...');
-            _statusMessage = 'Dispositivo SQUARE encontrado, conectando...';
+            print('SQUARE device found, connecting...');
+            _statusMessage = 'SQUARE device found, connecting...';
             notifyListeners();
             
-            // Detener el escaneo y conectar
+            // Stop scanning and connect
             FlutterBluePlus.stopScan();
             connectToDevice(result.device);
             return;
           }
         }
         
-        _statusMessage = 'Dispositivos encontrados: ${results.length}';
+        _statusMessage = 'Devices found: ${results.length}';
         notifyListeners();
       });
 
@@ -212,49 +212,49 @@ class SquareBluetoothService extends ChangeNotifier {
       _isScanning = false;
       
       if (!_isConnected) {
-        _statusMessage = 'No se encontró el dispositivo SQUARE';
-        // Programar un nuevo escaneo
+        _statusMessage = 'SQUARE device not found';
+        // Schedule a new scan
         _scheduleRescan();
       }
       
       notifyListeners();
     } catch (e) {
       _isScanning = false;
-      _statusMessage = 'Error al escanear: $e';
+      _statusMessage = 'Error scanning: $e';
       notifyListeners();
       
-      // Programar un nuevo escaneo
+      // Schedule a new scan
       _scheduleRescan();
     }
   }
 
   Future<void> connectToDevice(BluetoothDevice device) async {
     try {
-      _statusMessage = 'Conectando a ${device.platformName}...';
+      _statusMessage = 'Connecting to ${device.platformName}...';
       notifyListeners();
 
       _device = device;
       await device.connect(timeout: const Duration(seconds: 4));
       _isConnected = true;
-      _reconnectAttempts = 0; // Reiniciar contador de intentos
-      _statusMessage = 'Conectado a ${device.platformName}';
+      _reconnectAttempts = 0; // Reset attempt counter
+      _statusMessage = 'Connected to ${device.platformName}';
       notifyListeners();
 
-      // Configurar listener para desconexión
+      // Set up listener for disconnection
       device.connectionState.listen((BluetoothConnectionState state) {
-        print('Estado de conexión cambiado: $state');
+        print('Connection state changed: $state');
         if (state == BluetoothConnectionState.disconnected) {
           _isConnected = false;
-          _statusMessage = 'Dispositivo desconectado';
+          _statusMessage = 'Device disconnected';
           notifyListeners();
           
-          // Programar reconexión
+          // Schedule reconnection
           _scheduleReconnect();
         }
       });
 
       // Discover services
-      _statusMessage = 'Buscando servicios...';
+      _statusMessage = 'Searching for services...';
       notifyListeners();
       
       List<BluetoothService> services = await device.discoverServices();
@@ -266,18 +266,18 @@ class SquareBluetoothService extends ChangeNotifier {
             characteristic.value.listen((value) {
               _handleNotification(value);
             });
-            _statusMessage = 'Listo para recibir comandos';
+            _statusMessage = 'Ready to receive commands';
             notifyListeners();
             break;
           }
         }
       }
     } catch (e) {
-      print('Error al conectar: $e');
-      _statusMessage = 'Error al conectar: $e';
+      print('Error connecting: $e');
+      _statusMessage = 'Error connecting: $e';
       _isConnected = false;
       
-      // Programar reconexión
+      // Schedule reconnection
       _scheduleReconnect();
       
       notifyListeners();

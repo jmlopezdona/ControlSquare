@@ -1,72 +1,73 @@
-﻿# Control Square
+﻿# ControlSquare
 
-Una aplicación Flutter para controlar dispositivos SQUARE a través de Bluetooth.
+A Flutter application for controlling the SQUARE device via Bluetooth.
 
-## Características
+## Features
 
-- Conexión Bluetooth con dispositivos SQUARE
-- Interfaz de usuario intuitiva
-- Soporte para todos los botones del dispositivo
-- Compatible con Windows 10 y superiores
+- Automatic Bluetooth device discovery and connection
+- Real-time button press detection
+- Resilient connection with automatic reconnection
+- Support for Windows platform
+- Clean and intuitive user interface
 
-## Requisitos
+## Supported Buttons
 
-- Flutter SDK (versión 3.0.0 o superior)
-- Windows 10 o superior
-- Bluetooth habilitado en el dispositivo
-- Visual Studio 2019 o superior con soporte para desarrollo de Windows
-- Microsoft Visual C++ Runtime libraries
+The application recognizes the following buttons from the SQUARE device:
 
-## Instalación
+- **Navigation**: Up, Down, Left, Right
+- **Action Buttons**: X, Y, A, B, Z, Square, Circle, Triangle
+- **Shift Controls**: Left shift 1, Left shift 2, Right shift 1, Right shift 2
+- **Brake Controls**: Left brake, Right brake
+- **Special Controls**: Left Campagnolo, Right Campagnolo
 
-1. Instala las dependencias:
-```bash
-flutter pub get
-```
+## Requirements
 
-2. Ejecuta la aplicación:
-```bash
-flutter run -d windows
-```
+- Flutter SDK (>=3.0.0)
+- Windows 10 or later
+- Bluetooth adapter
+- SQUARE device
 
-## Uso
+## Installation
 
-1. Asegúrate de que tu dispositivo SQUARE esté encendido y en modo de emparejamiento
-2. Abre la aplicación Control Square
-3. Haz clic en el icono de Bluetooth en la barra de herramientas
-4. Selecciona tu dispositivo SQUARE de la lista
-5. Una vez conectado, podrás usar todos los botones del dispositivo
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/control_square.git
+   ```
 
-## Mapeo de Botones
+2. Navigate to the project directory:
+   ```
+   cd control_square
+   ```
 
-El dispositivo SQUARE tiene los siguientes botones mapeados:
+3. Install dependencies:
+   ```
+   flutter pub get
+   ```
 
-- Up: Flecha arriba
-- Down: Flecha abajo
-- Left: Flecha izquierda
-- Right: Flecha derecha
-- X: Control izquierdo
-- Square: Tecla R
-- Left Campagnolo: Flecha izquierda
-- Left brake: Tecla 6
-- Y: Tecla G
-- A: Enter
-- B: Escape
-- Z: Tecla T
-- Circle: Control derecho
-- Triangle: Espacio
-- Right Campagnolo: Flecha derecha
-- Right brake: Tecla 1
+4. Run the application:
+   ```
+   flutter run -d windows
+   ```
 
-## Solución de Problemas
+## How It Works
 
-Si tienes problemas para conectar el dispositivo:
+1. The application automatically initializes the Bluetooth service on startup
+2. It continuously scans for the SQUARE device
+3. When found, it automatically connects to the device
+4. The application listens for button presses and displays them in real-time
+5. If the connection is lost, it automatically attempts to reconnect
 
-1. Asegúrate de que el Bluetooth esté habilitado en tu computadora
-2. Verifica que el dispositivo SQUARE esté en modo de emparejamiento
-3. Reinicia tanto el dispositivo como la aplicación
-4. Asegúrate de tener instaladas las Microsoft Visual C++ Runtime libraries
+## Dependencies
 
-## Licencia
+- `flutter_blue_plus`: ^1.31.13
+- `flutter_blue_plus_windows`: ^1.26.1
+- `provider`: ^6.1.1
 
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Thanks to the Flutter team for the amazing framework
+- Thanks to the flutter_blue_plus team for the Bluetooth implementation
