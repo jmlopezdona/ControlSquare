@@ -118,7 +118,7 @@ class SquareBluetoothService extends ChangeNotifier {
       notifyListeners();
 
       await FlutterBluePlus.startScan(
-        timeout: const Duration(seconds: 4),
+        timeout: const Duration(seconds: 10),
       );
       
       FlutterBluePlus.scanResults.listen((results) {
@@ -127,7 +127,7 @@ class SquareBluetoothService extends ChangeNotifier {
         notifyListeners();
       });
 
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(const Duration(seconds: 10));
       await FlutterBluePlus.stopScan();
       _isScanning = false;
       _statusMessage = _scanResults.isEmpty ? 'No se encontraron dispositivos' : 'Selecciona un dispositivo';
