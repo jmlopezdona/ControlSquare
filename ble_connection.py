@@ -1,49 +1,116 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
 import time
+from pynput.keyboard import Key, Controller
 
 # Constants
 DEVICE_NAME = "SQUARE"
 CHARACTERISTIC_UUID = "347b0043-7635-408b-8918-8ff3949ce592"
 RECONNECT_DELAY = 5  # seconds between reconnection attempts
 
-# Button mapping
+# Button mapping (all codes have the same length - 8 characters)
 BUTTON_MAPPING = {
-    "0201610000020002020c321e0101": "Up",
-    "0201610000010002020c321e0101": "Left",
-    "0201610000080002020c321e0101": "Down",
-    "0201610000040002020c321e0101": "Right",
-    "0201610000200002020c321e0101": "X",
-    "0201610000100002020c321e0101": "Square",
-    "0201610000800002020c321e0101": "Left Campagnolo",
-    "0201610000400002020c321e0101": "Left brake",
-    "0201610000000202020c321e0101": "Left shift 1",
-    "0201610000000102020c321e0101": "Left shift 2",
-    "0201610200000002020c321e0101": "Y",
-    "0201610100000002020c321e0101": "A",
-    "0201610800000002020c321e0101": "B",
-    "0201610400000002020c321e0101": "Z",
-    "0201612000000002020c321e0101": "Circle",
-    "0201611000000002020c321e0101": "Triangle",
-    "0201618000000002020c321e0101": "Right Campagnolo",
-    "0201614000000002020c321e0101": "Right brake",
-    "0201610002000002020c321e0101": "Right shift 1",
-    "0201610001000002020c321e0101": "Right shift 2"
+    "00000200": "Up",
+    "00000100": "Left",
+    "00000800": "Down",
+    "00000400": "Right",
+    "00002000": "X",
+    "00001000": "Square",
+    "00008000": "Left Campagnolo",
+    "00004000": "Left brake",
+    "00000002": "Left shift 1",
+    "00000001": "Left shift 2",
+    "00000002": "Y",
+    "00000001": "A",
+    "00000008": "B",
+    "00000004": "Z",
+    "00000020": "Circle",
+    "00000010": "Triangle",
+    "00000080": "Right Campagnolo",
+    "00000040": "Right brake",
+    "00000002": "Right shift 1",
+    "00000001": "Right shift 2"
+}
+
+# Key mapping for button presses
+KEY_MAPPING = {
+    "Up": Key.up,
+    "Left": Key.left,
+    "Down": Key.down,
+    "Right": Key.right,
+    "X": "x",
+    "Square": "s",
+    "Left Campagnolo": "c",
+    "Left brake": "b",
+    "Left shift 1": "1",
+    "Left shift 2": "2",
+    "Y": "y",
+    "A": "a",
+    "B": "b",
+    "Z": "z",
+    "Circle": "o",
+    "Triangle": "t",
+    "Right Campagnolo": "r",
+    "Right brake": "b",
+    "Right shift 1": "3",
+    "Right shift 2": "4"
 }
 
 # Variable to store the last value
 last_value = None
+keyboard = Controller()
+
+def extract_button_code(hex_value):
+    """Extract the relevant part of the hex value that identifies the button"""
+    # Simplified approach: use a fixed position in the hex value
+    # Skip the first 6 characters (timestamp) and take the next 8 characters
+    
+    if len(hex_value) >= 14:  # Ensure we have enough characters
+        # Extract 8 characters starting from position 6 (after timestamp)
+        button_code = hex_value[6:14]
+        
+        # Check if this code is in our mapping
+        if button_code in BUTTON_MAPPING:
+            return button_code
+    
+    # If we can't identify a specific pattern, return the whole value
+    return hex_value
 
 def notification_handler(sender, data):
     """Handler for notifications received from the BLE device"""
     global last_value
-    current_value = data.hex()
-    if current_value != last_value:
+    full_value = data.hex()
+    
+    # Extract the relevant part of the value that identifies the button
+    current_value = extract_button_code(full_value)
+    
+    # Only compare the relevant part, ignoring the first 6 and last 13 digits
+    if len(full_value) >= 19:  # Ensure we have enough characters
+        current_relevant_part = full_value[6:-13]  # Ignore first 6 and last 13
+        last_relevant_part = last_value[6:-13] if last_value else None
+    else:
+        current_relevant_part = full_value[6:]  # If not enough characters, only ignore first 6
+        last_relevant_part = last_value[6:] if last_value else None
+    
+    if current_relevant_part != last_relevant_part:
         # If the value is in our mapping, it's a button press
         # Otherwise, consider it as "No button pressed"
         button_name = BUTTON_MAPPING.get(current_value, "No button pressed")
-        print(f"Button pressed: {button_name} (hex: {current_value})")
-        last_value = current_value
+        if button_name == "No button pressed":
+            # Simplified log message for unpressed button
+            print("Unpressed button")
+        else:
+            print(f"Button pressed: {button_name} (full hex: {full_value}, button code: {current_value})")
+        
+        # Simulate key press if it's a valid button
+        if button_name != "No button pressed":
+            key = KEY_MAPPING.get(button_name)
+            if key:
+                print(f"Simulating key press: {key}")
+                keyboard.press(key)
+                keyboard.release(key)
+        
+        last_value = full_value
 
 async def connect_and_listen():
     """Function to connect to the device and listen for notifications"""
