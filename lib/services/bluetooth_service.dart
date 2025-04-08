@@ -15,6 +15,14 @@ class SquareBluetoothService extends ChangeNotifier {
   String _statusMessage = 'Inicializando...';
   String _lastButtonPressed = 'Ninguno';
   List<ScanResult> _scanResults = [];
+  
+  // Variables para la reconexión
+  Timer? _reconnectTimer;
+  Timer? _rescanTimer;
+  int _reconnectAttempts = 0;
+  static const int MAX_RECONNECT_ATTEMPTS = 5;
+  static const Duration RECONNECT_DELAY = Duration(seconds: 3);
+  static const Duration RESCAN_DELAY = Duration(seconds: 5);
 
   // Button mapping (all codes have the same length - 8 characters)
   final Map<String, String> buttonMapping = {
@@ -51,6 +59,14 @@ class SquareBluetoothService extends ChangeNotifier {
 
   SquareBluetoothService() {
     _initBluetooth();
+  }
+
+  @override
+  void dispose() {
+    _reconnectTimer?.cancel();
+    _rescanTimer?.cancel();
+    disconnect();
+    super.dispose();
   }
 
   Future<void> _initBluetooth() async {
@@ -93,14 +109,63 @@ class SquareBluetoothService extends ChangeNotifier {
         _isAvailable = state == BluetoothAdapterState.on;
         _statusMessage = _isAvailable ? 'Bluetooth listo' : 'Bluetooth no está activado';
         print('Estado actualizado - Disponible: $_isAvailable, Mensaje: $_statusMessage');
+        
+        // Si el Bluetooth está disponible, iniciar el escaneo automáticamente
+        if (_isAvailable && !_isConnected && !_isScanning) {
+          print('Iniciando escaneo automático...');
+          startScan();
+        }
+        
         notifyListeners();
       });
+
+      // Iniciar el primer escaneo si el Bluetooth está disponible
+      if (_isAvailable && !_isConnected && !_isScanning) {
+        print('Iniciando primer escaneo...');
+        startScan();
+      }
 
     } catch (e) {
       print('Error al inicializar Bluetooth: $e');
       _statusMessage = 'Error al inicializar Bluetooth: $e';
       _isAvailable = false;
       notifyListeners();
+      
+      // Programar un reintento de inicialización
+      _scheduleRescan();
+    }
+  }
+
+  void _scheduleRescan() {
+    _rescanTimer?.cancel();
+    _rescanTimer = Timer(RESCAN_DELAY, () {
+      print('Reintentando inicialización de Bluetooth...');
+      _initBluetooth();
+    });
+  }
+
+  void _scheduleReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectAttempts++;
+    
+    if (_reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
+      print('Programando reconexión en ${RECONNECT_DELAY.inSeconds} segundos (intento $_reconnectAttempts de $MAX_RECONNECT_ATTEMPTS)');
+      _statusMessage = 'Reconectando en ${RECONNECT_DELAY.inSeconds} segundos...';
+      notifyListeners();
+      
+      _reconnectTimer = Timer(RECONNECT_DELAY, () {
+        if (_device != null) {
+          print('Intentando reconectar al dispositivo ${_device!.platformName}...');
+          connectToDevice(_device!);
+        } else {
+          print('Dispositivo no disponible, iniciando nuevo escaneo...');
+          startScan();
+        }
+      });
+    } else {
+      print('Se alcanzó el máximo de intentos de reconexión, iniciando nuevo escaneo...');
+      _reconnectAttempts = 0;
+      startScan();
     }
   }
 
@@ -113,7 +178,7 @@ class SquareBluetoothService extends ChangeNotifier {
 
     try {
       _isScanning = true;
-      _statusMessage = 'Buscando dispositivos...';
+      _statusMessage = 'Buscando dispositivo SQUARE...';
       _scanResults = [];
       notifyListeners();
 
@@ -123,6 +188,21 @@ class SquareBluetoothService extends ChangeNotifier {
       
       FlutterBluePlus.scanResults.listen((results) {
         _scanResults = results;
+        
+        // Buscar el dispositivo SQUARE
+        for (var result in results) {
+          if (result.device.platformName == DEVICE_NAME) {
+            print('Dispositivo SQUARE encontrado, conectando...');
+            _statusMessage = 'Dispositivo SQUARE encontrado, conectando...';
+            notifyListeners();
+            
+            // Detener el escaneo y conectar
+            FlutterBluePlus.stopScan();
+            connectToDevice(result.device);
+            return;
+          }
+        }
+        
         _statusMessage = 'Dispositivos encontrados: ${results.length}';
         notifyListeners();
       });
@@ -130,12 +210,21 @@ class SquareBluetoothService extends ChangeNotifier {
       await Future.delayed(const Duration(seconds: 10));
       await FlutterBluePlus.stopScan();
       _isScanning = false;
-      _statusMessage = _scanResults.isEmpty ? 'No se encontraron dispositivos' : 'Selecciona un dispositivo';
+      
+      if (!_isConnected) {
+        _statusMessage = 'No se encontró el dispositivo SQUARE';
+        // Programar un nuevo escaneo
+        _scheduleRescan();
+      }
+      
       notifyListeners();
     } catch (e) {
       _isScanning = false;
       _statusMessage = 'Error al escanear: $e';
       notifyListeners();
+      
+      // Programar un nuevo escaneo
+      _scheduleRescan();
     }
   }
 
@@ -147,8 +236,22 @@ class SquareBluetoothService extends ChangeNotifier {
       _device = device;
       await device.connect(timeout: const Duration(seconds: 4));
       _isConnected = true;
+      _reconnectAttempts = 0; // Reiniciar contador de intentos
       _statusMessage = 'Conectado a ${device.platformName}';
       notifyListeners();
+
+      // Configurar listener para desconexión
+      device.connectionState.listen((BluetoothConnectionState state) {
+        print('Estado de conexión cambiado: $state');
+        if (state == BluetoothConnectionState.disconnected) {
+          _isConnected = false;
+          _statusMessage = 'Dispositivo desconectado';
+          notifyListeners();
+          
+          // Programar reconexión
+          _scheduleReconnect();
+        }
+      });
 
       // Discover services
       _statusMessage = 'Buscando servicios...';
@@ -170,9 +273,13 @@ class SquareBluetoothService extends ChangeNotifier {
         }
       }
     } catch (e) {
+      print('Error al conectar: $e');
       _statusMessage = 'Error al conectar: $e';
       _isConnected = false;
-      _device = null;
+      
+      // Programar reconexión
+      _scheduleReconnect();
+      
       notifyListeners();
     }
   }
@@ -198,12 +305,16 @@ class SquareBluetoothService extends ChangeNotifier {
 
   Future<void> disconnect() async {
     try {
+      _reconnectTimer?.cancel();
+      _rescanTimer?.cancel();
+      
       if (_device != null) {
         await _device!.disconnect();
       }
       _isConnected = false;
       _device = null;
       _characteristic = null;
+      _reconnectAttempts = 0;
       notifyListeners();
     } catch (e) {
       print('Error disconnecting: $e');
