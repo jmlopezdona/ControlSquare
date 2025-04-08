@@ -143,58 +143,52 @@ class HomeScreen extends StatelessWidget {
             );
           }
 
-          return Column(
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                'Último botón presionado:',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                Text(
+                  'Último botón presionado:',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                child: Text(
-                  bluetoothService.lastButtonPressed,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    bluetoothService.lastButtonPressed,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Nombre: ${bluetoothService.device?.platformName ?? "Desconocido"}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'ID: ${bluetoothService.device?.remoteId.toString() ?? "Desconocido"}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                bluetoothService.statusMessage,
-                style: const TextStyle(fontSize: 16, color: Colors.blue),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'Presiona los botones del dispositivo SQUARE',
-                style: TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => bluetoothService.disconnect(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+                const SizedBox(height: 20),
+                Text(
+                  'Nombre: ${bluetoothService.device?.platformName ?? "Desconocido"}',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                child: const Text('Desconectar'),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Text(
+                  'ID: ${bluetoothService.device?.remoteId.toString() ?? "Desconocido"}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  bluetoothService.statusMessage,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => bluetoothService.disconnect(),
+                  child: const Text('Desconectar'),
+                ),
+              ],
+            ),
           );
         },
       ),
