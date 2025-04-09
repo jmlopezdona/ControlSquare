@@ -1,0 +1,22 @@
+{
+    "Up": "Key.up",
+    "Left": "Key.left",
+    "Down": "Key.down",
+    "Right": "Key.right",
+    "X": null,
+    "Square": "KeyCode.from_char('r')",
+    "Left Campagnolo": "Key.left",
+    "Left brake": "KeyCode.from_char('6')",
+    "Left shift 1": null,
+    "Left shift 2": null,
+    "Y": "KeyCode.from_char('g')",
+    "A": "Key.enter",
+    "B": "Key.esc",
+    "Z": "KeyCode.from_char('t')",
+    "Circle": null,
+    "Triangle": "Key.space",
+    "Right Campagnolo": "Key.right",
+    "Right brake": "KeyCode.from_char('1')",
+    "Right shift 1": null,
+    "Right shift 2": null
+}
