@@ -41,7 +41,7 @@ KEY_MAPPING = {
     "X": None, # left steering
     "Square": KeyCode.from_char('r'), # pairing screen, 
     "Left Campagnolo": Key.left,
-    "Left brake": KeyCode.from_char('6'), # backward view
+    "Left brake": None, # Toggles backward/forward view ('6'/'1')
     "Left shift 1": None,
     "Left shift 2": None,
     "Y": KeyCode.from_char('g'), # alternate power and watts and FC 
@@ -51,7 +51,7 @@ KEY_MAPPING = {
     "Circle": None, # Right steering
     "Triangle": Key.space, # Activate powerup
     "Right Campagnolo": Key.right,
-    "Right brake": KeyCode.from_char('1'), # fordward view
+    "Right brake": None,
     "Right shift 1": None,
     "Right shift 2": None
 }
@@ -59,6 +59,7 @@ KEY_MAPPING = {
 # Variable to store the last value
 last_value = None
 keyboard = Controller()
+left_brake_is_forward_view = False
 
 def extract_button_code(hex_value):
     """Extract the relevant part of the hex value that identifies the button"""
@@ -78,7 +79,7 @@ def extract_button_code(hex_value):
 
 def notification_handler(sender, data):
     """Handler for notifications received from the BLE device"""
-    global last_value
+    global last_value, left_brake_is_forward_view
     full_value = data.hex()
     
     # Extract the relevant part of the value that identifies the button
@@ -103,7 +104,17 @@ def notification_handler(sender, data):
             print(f"Button pressed: {button_name} (full hex: {full_value}, button code: {current_value})")
         
         # Simulate key press if it's a valid button
-        if button_name != "No button pressed":
+        if button_name == "Left brake":
+            left_brake_is_forward_view = not left_brake_is_forward_view
+            if left_brake_is_forward_view:
+                key = KeyCode.from_char('1')
+                print(f"Simulating key press: {key} (Left brake - forward view)")
+            else:
+                key = KeyCode.from_char('6')
+                print(f"Simulating key press: {key} (Left brake - backward view)")
+            keyboard.press(key)
+            keyboard.release(key)
+        elif button_name != "No button pressed":
             key = KEY_MAPPING.get(button_name)
             if key:
                 print(f"Simulating key press: {key}")
