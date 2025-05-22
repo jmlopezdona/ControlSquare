@@ -57,7 +57,7 @@ Below is the mapping of buttons and their corresponding button codes (all codes 
 | X | 00002000 | None | Left steering control (default; you need pairing Square in Zwift) |
 | Square | 00001000 | h | Toggle HUD |
 | Left Campagnolo | 00008000 | Left Arrow| Navigate left |
-| Left brake | 00004000 | 6 | Change to backforward view |
+| Left brake | 00004000 | Toggles '6'/'1' | Toggles backward/forward camera view |
 | Left shift 1 | 00000002 | None | (Reserved for virtual gears) |
 | Left shift 2 | 00000001 | None | (Reserved for virtual gears) |
 | Y | 02000000 | g | Alternate power and watts and FC view |
@@ -67,7 +67,7 @@ Below is the mapping of buttons and their corresponding button codes (all codes 
 | Circle | 20000000 | None | Rigth steering control (default; you need pairing Square in Zwift) |
 | Triangle | 10000000 | Space | Activate powerup |
 | Right Campagnolo | 80000000 | Rigth Arrow | Navigate Right |
-| Right brake | 40000000 | 1 | Change to forward view |
+| Right brake | 40000000 | None | No view change function |
 | Right shift 1 | 00020000 | None | (Reserved for virtual gears) |
 | Right shift 2 | 00010000 | None | (Reserved for virtual gears) |
 
